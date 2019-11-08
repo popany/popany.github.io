@@ -70,7 +70,7 @@ The preconditon of global memory order is the assumption that the operations of 
 >    * _If S(a) <p L(b) ⇒ S(a) <m L(b) /`*` Store→Load `*`/_  
 >
 > 2. _Every load gets its value from the last store before it (in global memory order) to the same address:_  
-> _Value of L(a) = Value of $MAX_{<m} \{S(a) | S(a) <m L(a)\}$, where $MAX_{<m}$ denotes “latest in memory order.”_  
+> _Value of L(a) = Value of $MAX_{<m} \{S(a) | S(a) <m\ L(a)\}$, where $MAX_{<m}$ denotes “latest in memory order.”_  
 >
 > _Each execution of a test-and-set instruction, for example, requires that the load for the test and the store for the set logically appear consecutively in the memory order (i.e., no other memory operations for __the same or different__ addresses interpose between them)._  
 >
@@ -101,7 +101,8 @@ The preconditon of global memory order is the assumption that the operations of 
 >    * _If FENCE <p L(a) ⇒ FENCE <m L(a) /`*` FENCE → Load  `*`/_  
 >
 > 2. _Load value:_  
-> _Value of L(a) = Value of $MAX_{<m} \{S(a) | S(a) <m L(a)\}$, where $MAX_{<m}$ denotes “latest in memory order._  
+> _Value of L(a) = Value of $MAX_{<m} \{S(a) | S(a) <m\  L(a) \ or\  S(a) <p\ L(a)\}$_  
 >
 > _The implementation story for TSO/x86 is similar to SC with the addition of per-core FIFO write buffers._  
+>
 > _The semantics of the FENCE specify that all instructions before the FENCE in program order must be ordered before any instructions after the FENCE in program order._  
