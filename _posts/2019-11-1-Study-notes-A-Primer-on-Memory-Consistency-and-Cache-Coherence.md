@@ -58,6 +58,7 @@ The preconditon of global memory order is the assumption that the operations of 
 >
 > 2. _Every load gets its value from the last store before it (in global memory order) to the same address:_  
 > _Value of L(a) = Value of $MAX_{<m} \{S(a) | S(a) <m L(a)\}$, where $MAX_{<m}$ denotes “latest in memory order.”_  
+>
 > _"Each execution of a test-and-set instruction, for example, requires that the load for the test and the store for the set logically appear consecutively in the memory order (i.e., no other memory operations for __the same or different__ addresses interpose between them)."_  
 > _"An __SC implementation__ permits only __SC executions__."_  
 > _"At minimum, an SC implementation should permit __at least one__ SC execution for every program."_  
