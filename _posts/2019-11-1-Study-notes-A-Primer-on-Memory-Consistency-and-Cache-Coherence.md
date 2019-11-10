@@ -106,3 +106,72 @@ The preconditon of global memory order is the assumption that the operations of 
 > _The implementation story for TSO/x86 is similar to SC with the addition of per-core FIFO write buffers._  
 >
 > _The semantics of the FENCE specify that all instructions before the FENCE in program order must be ordered before any instructions after the FENCE in program order._  
+
+## 5. Relaxed Memory Consistency
+
+> _For teaching purposes, this section introduces an eXample relaxed Consistency model (XC) that captures the basic idea and some implementation potential of relaxed memory consistency models. XC assumes that a __global memory order exists__, as is true for the strong models of SC and TSO, as well as the largely defunct relaxed models for Alpha and SPARC Relaxed Memory Order (RMO)._  
+>
+> XC provides a FENCE instruction so that programmers can indicate when order is needed; otherwise, by default, loads and stores are unordered.  
+>
+> A FENCE instruction does not specify an address. Two FENCEs by the same core also stay ordered. However, a FENCE __does not affect the order of memory operations at other cores__ (which is why “fence” may be a better name than “barrier”).  
+> _XC’s memory order is guaranteed to respect (preserve) program order for:_  
+>
+> * _Load → FENCE_  
+> * _Store → FENCE_  
+> * _FENCE → FENCE_  
+> * _FENCE → Load_  
+> * _FENCE → Store_  
+>
+> _XC maintains TSO rules for ordering two accesses to the same address only:_  
+>
+> * _Load → Load to same address_  
+> * _Load → Store to the same address_  
+> * _Store → Store to the same address_  
+>
+> _These rules enforce the __sequential processor model__ (i.e., sequential core semantics) and prohibit behaviors that might astonish programmers._  
+>
+> _XC ensures that loads immediately see updates due to their own stores (like TSO's write buffer bypassing). This rule preserves the sequentiality of single threads, also to avoid programmer astonishment._  
+>
+> _Here, we formalize XC in a manner consistent with the previous two chapters’ notation and approach. Once again, let L(a) and S(a) represent a load and a store, respectively, to address a. Orders <p and <m define per-processor program order and global memory order, respectively. Program order <p is a per-processor total order that captures the order in which each core logically (sequentially) executes memory operations. Global memory order <m is a total order on the memory of all cores._  
+>
+> _More formally, an __XC execution__ requires the following:_
+>
+> 1. _All cores insert their loads, stores, and FENCEs into the order <m respecting:_  
+>
+>     * _If L(a) <p FENCE ⇒ L(a) <m FENCE /`*` Load → FENCE `*`/_  
+>     * _If S(a) <p FENCE ⇒ S(a) <m FENCE /`*` Store → FENCE `*`/_  
+>     * _If FENCE <p FENCE ⇒ FENCE <m FENCE /`*` FENCE → FENCE `*`/_  
+>     * _If FENCE <p L(a) ⇒ FENCE <m L(a) /`*` FENCE → Load `*`/_  
+>     * _If FENCE <p S(a) ⇒ FENCE <m S(a) /`*` FENCE → Store `*`/_  
+>
+> 2. _All cores insert their loads and stores to the same address into the order <m respecting:_  
+>
+>    * _If L(a) <p L'(a) ⇒ L(a) <m L' (a) /`*` Load → Load to same address `*`/_  
+>    * _If L(a) <p S(a) ⇒ L(a) <m S(a) /`*` Load → Store to same address  `*`/_  
+>    * _If S(a) <p S'(a) ⇒ S(a) <m S' (a) /`*` Store → Store to same address  `*`/_  
+>
+> 3. _Every load gets its value from the last store before it to the same address:_  
+> _Value of L(a) = Value of $MAX_{<m} \{S(a) | S(a) <m\  L(a) \ or\  S(a) <p\ L(a)\}$_  
+>
+> _With TSO, the atomic RMW is used to attempt to acquire the lock, and a store is used to release the lock. With XC, the situation is more complicated. For the acquire, XC does not, by default, constrain the RMW from being reordered with respect to the operations in the critical section. To avoid this situation, a __lock acquire must be followed by a FENCE__. Similarly, the lock release is not, by default, constrained from being reordered with respect to the operations before it in the critical section. To avoid this situation, a __lock release must be preceded by a FENCE__._  
+>
+> _SC for DRF programs asks programmers to ensure programs are DRF under SC and asks implementors to ensure that all executions of DRF programs on the relaxed model are also SC executions. XC and, as far as we know, all commercial relaxed memory models support SC for DRF programs._  
+>
+> _A more concrete understanding of “SC for DRF” requires some definitions:_  
+>
+> * _Some memory operations are tagged as synchronization (“synchronization operations”), while the rest are tagged data by default (“data operations”). Synchronization operations include lock acquires and releases._
+> * _Two data operations Di and Dj conflict if they are from different cores (threads) (i.e., __not ordered by program order__), access the same memory location, and at least one is a store._  
+> * _Two synchronization operations Si and Sj conflict if they are from different cores (threads), access the same memory location (e.g., the same lock), and the two synchronization operations are not compatible (e.g., acquire and release of a spinlock are not compatible, whereas two read_locks on a reader–writer lock are compatible)._  
+> * _Two synchronization operations Si and Sj transitively conflict if either Si and Sj conflict or if Si conflicts with some synchronization operation Sk, Sk <p Sk' (i.e., Sk is earlier than Sk' in a core K’s program order), and Sk' transitively conflicts with Sj._  
+> * _Two data operations Di and Dj race if they conflict and they appear in the global memory order without an intervening pair of transitively conflicting synchronization operations by the same cores (threads) i and j. In other words, a pair of conflicting data operations Di <m Dj are not a data race if and only if there exists a pair of transitively conflicting synchronization operations Si and Sj such that Di <m Si <m Sj <m Dj._  
+> * _An SC execution is __data-race-free (DRF)__ if no data operations race._  
+> * _A program is DRF if all its SC executions are DRF._  
+> * _A memory consistency model supports “__SC for DRF__ programs” if all executions of all DRF programs are __SC executions__. This support usually requires some special actions for synchronization operations._  
+>
+> _With FENCEs around synchronization operations, XC supports __SC for DRF__ programs._  
+>
+> _Supporting SC for DRF programs allows many programmers to reason about their programs with SC and not the more complex rules of XC and, at the same time, benefit from any hardware performance improvements or simplifications XC enables over SC._  
+>
+> _To allow synchronization races but not data races, programmers must tag variables as synchronization when it is possible they can race, using keywords such as volatile and atomic, or create synchronization locks implicitly with Java’s monitor-like synchronized methods. In all cases, implementations are free to reorder references as long as data-race-free programs obey SC._  
+>
+> _Thus, HLLs, such as Java and C++, adopt the relaxed memory model approach of “SC for DRF.” When these HLLs run on hardware, should the hardware’s memory model also be relaxed? On one hand, (a) relaxed hardware can give the most performance, and (b) compilers and runtime software need only translate the HLL’s synchronizations operations into the particular hardware’s low-level synchronization operations and FENCEs to provide the necessary ordering. On the other hand, (a) SC and TSO can give good performance, and (b) compilers and runtime software can generate more portable code without FENCEs from incomparable memory models. Although the debate is not settled, it is clear that relaxed __HLL models do not require relaxed hardware__._  
