@@ -87,3 +87,9 @@ Then edit the file and replace the default programs with desired commands. Remem
 To run Xorg as a regular user, issue:
 
     $ startx
+
+## i3
+
+[How do I start i3?](https://faq.i3wm.org/question/6126/how-do-i-start-i3/index.html)
+
+> The easiest way to get started is to edit (or create, if misisng) ~/.xinitrc. If it didn't exist, simply put exec i3 in there. If it exists, check the bottom for some exec call, comment it out and put exec i3 instead.
