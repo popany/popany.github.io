@@ -63,3 +63,27 @@ To allow members of group `wheel` sudo access:
 If you use a lot of aliases, you might have noticed that they do not carry over to the root account when using sudo. However, there is an easy way to make them work. Simply add the following to your `~/.bashrc` or `/etc/bash.bashrc`:
 
     alias sudo='sudo '
+
+## xinit ([source](https://wiki.archlinux.org/index.php/Xinit))
+
+### xinitrc  
+
+`~/.xinitrc` is handy to run programs depending on X and set environment variables on X server startup. If it is present in a user's home directory, startx and xinit execute it. Otherwise startx will run the default `/etc/X11/xinit/xinitrc`.  
+
+This default xinitrc will start a basic environment with `Twm`, `xorg-xclock` and `Xterm` (assuming that the necessary packages are installed). Therefore, to start a different window manager or desktop environment, first create a copy of the default xinitrc in your home directory:  
+
+    $ cp /etc/X11/xinit/xinitrc ~/.xinitrc
+
+Then edit the file and replace the default programs with desired commands. Remember that lines following a command using `exec` would be ignored. For example, to start `xscreensaver` in the background and then start `openbox`, use the following:
+
+    ~/.xinitrc
+
+    ...
+    xscreensaver &
+    exec openbox-session
+
+### Usage
+
+To run Xorg as a regular user, issue:
+
+    $ startx
