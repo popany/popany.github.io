@@ -101,3 +101,33 @@ To run Xorg as a regular user, issue:
     xterm*renderFont: true
     xterm*faceName: mono
     xterm*faceSize: 12
+
+## bash
+
+### [redirecting to /dev/null](https://unix.stackexchange.com/questions/119648/redirecting-to-dev-null)
+
+To redirect error and output messages to `/dev/null`
+
+    $ command &>/dev/null
+
+or
+
+    $ command > /dev/null 2>&1
+
+By default:
+
+    stdin  ==> fd 0
+    stdout ==> fd 1
+    stderr ==> fd 2
+
+`> /dev/null` causing:
+
+    stdin  ==> fd 0
+    stdout ==> /dev/null
+    stderr ==> fd 2
+
+And then 2>&1 causing:
+
+    stdin  ==> fd 0
+    stdout ==> /dev/null
+    stderr ==> stdout
