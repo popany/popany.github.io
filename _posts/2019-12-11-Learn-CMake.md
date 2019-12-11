@@ -29,7 +29,7 @@ title: Learn CMake
 
 ##### illustrate
 
-[`add_executable`](https://cmake.org/cmake/help/v3.0/command/add_executable.html?highlight=add_executable)
+[`add_executable()`](https://cmake.org/cmake/help/v3.0/command/add_executable.html?highlight=add_executable)
 
 > Add an executable to the project using the specified source files.
 >
@@ -40,7 +40,7 @@ title: Learn CMake
 >  
 > By default the executable file will be created in the **build tree directory** corresponding to the source tree directory in which the command was invoked. See documentation of the [`RUNTIME_OUTPUT_DIRECTORY`](https://cmake.org/cmake/help/v3.0/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html#prop_tgt:RUNTIME_OUTPUT_DIRECTORY) target property to change this location. See documentation of the [`OUTPUT_NAME`](https://cmake.org/cmake/help/v3.0/prop_tgt/OUTPUT_NAME.html#prop_tgt:OUTPUT_NAME) target property to change the `<name>` part of the final file name.
 
-[`project`](https://cmake.org/cmake/help/v3.0/command/project.html?highlight=project)
+[`project()`](https://cmake.org/cmake/help/v3.0/command/project.html?highlight=project)
 
 > Set a name, version, and enable languages for the entire project.  
 >
@@ -81,7 +81,7 @@ title: Learn CMake
 > depending on whether `VAR` is set in CMake to any value not considered a false constant by the `if()` command. The `“…”` content on the line after the variable name, if any, is processed as above. Input file lines of the form `#cmakedefine01 VAR` will be replaced with either `#define VAR 1` or `#define VAR 0` similarly.
 > If the input file is modified the build system will re-run CMake to re-configure the file and generate the build system again. The generated file is modified and its timestamp updated on subsequent cmake runs only if its content is changed.
 
-[`target_include_directories`](https://cmake.org/cmake/help/latest/command/target_include_directories.html?highlight=target_include_directories)
+[`target_include_directories()`](https://cmake.org/cmake/help/latest/command/target_include_directories.html?highlight=target_include_directories)
 > Add include directories to a target.
 >
 >     target_include_directories(<target> [SYSTEM] [BEFORE]
