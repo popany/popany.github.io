@@ -116,3 +116,158 @@ title: Learn CMake
 
 ### Adding a Library (Step 2)
 
+`CMakeLists.txt`
+
+    cmake_minimum_required(VERSION 3.10)
+
+    # add the executable
+    add_executable(Tutorial tutorial.cxx)
+
+    # set the project name and version
+    project(Tutorial VERSION 1.0)
+
+    # put this before configure_file()
+    option(USE_FOO "Use foo" ON)
+
+    # configure a header file to pass the version number to the source code
+    configure_file(TutorialConfig.h.in TutorialConfig.h)
+
+    # add build directory to the list of paths to search for include files
+    target_include_directories(Tutorial PUBLIC "${PROJECT_BINARY_DIR}")
+
+    # specify the C++ standard
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+    if(USE_FOO)
+      add_subdirectory(foo)
+      list(APPEND EXTRA_LIBS foo)
+      list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/foo")
+    endif()
+
+    target_link_libraries(Tutorial PUBLIC ${EXTRA_LIBS})
+
+    # add the binary tree to the search path for include files so that we will find TutorialConfig.h
+    target_include_directories(Tutorial PUBLIC
+                               "${PROJECT_BINARY_DIR}"
+                               ${EXTRA_INCLUDES}
+                               )
+
+`foo/CMakeLists.txt`
+
+    add_library(foo foo.cxx)
+
+`foo/foo.h`
+
+    #include <string>
+    void FooFunc(std::string&& s);
+
+`foo/foo.cxx`
+
+    #include <iostream>
+    #include "foo.h"
+
+    void FooFunc(std::string&& s)
+    {
+        std::cout << "call FooFunc(" << s << ")" << std::endl;
+    }
+
+`TutorialConfig.h.in`
+
+    // the configured options and settings for Tutorial
+    #define Tutorial_VERSION_MAJOR @Tutorial_VERSION_MAJOR@
+    #define Tutorial_VERSION_MINOR @Tutorial_VERSION_MINOR@
+
+    #cmakedefine USE_FOO
+
+`tutorial.cxx`
+
+    #include <iostream>
+    #include "TutorialConfig.h"
+
+    #ifdef USE_FOO
+    #  include "foo.h"
+    #endif
+
+    int main(int argc, char* argv[])
+    {
+        std::cout << argv[0] << " Version " << Tutorial_VERSION_MAJOR << "." << Tutorial_VERSION_MINOR << std::endl;
+
+        #ifdef USE_FOO
+        FooFunc("s");
+        #endif
+
+        return 0;
+    }
+
+### Adding Usage Requirements for Library (Step 3)
+
+**Usage requirements** allow for far better control over a library or executable’s **link** and **include** line while also giving more control over the **transitive property** of targets inside CMake. The primary commands that leverage usage requirements are:
+
+* `target_compile_definitions`
+* `target_compile_options`
+* `target_include_directories`
+* `target_link_libraries`
+
+refactor the code to use the modern CMake approach of **usage requirements**. First state that anybody linking to `foo` needs to include the current source directory, while `foo` itself doesn’t. So this can become an `INTERFACE` usage requirement.
+
+Remember `INTERFACE` means things that consumers require but the producer doesn’t. Add the following lines to the end of `foo/CMakeLists.txt`:
+
+    target_include_directories(foo
+              INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+              )
+
+remove the uses of the `EXTRA_INCLUDES` variable from the top-level `CMakeLists.txt`, here:
+
+    if(USE_MYMATH)
+      add_subdirectory(foo)
+      list(APPEND EXTRA_LIBS foo)
+    endif()
+
+And here:
+
+    target_include_directories(Tutorial PUBLIC
+                               "${PROJECT_BINARY_DIR}"
+                               )
+
+`CMakeLists.txt`
+
+    cmake_minimum_required(VERSION 3.10)
+
+    # add the executable
+    add_executable(Tutorial tutorial.cxx)
+
+    # set the project name and version
+    project(Tutorial VERSION 1.0)
+
+    # put this before configure_file()
+    option(USE_FOO "Use foo" ON)
+
+    # configure a header file to pass the version number to the source code
+    configure_file(TutorialConfig.h.in TutorialConfig.h)
+
+    # add build directory to the list of paths to search for include files
+    target_include_directories(Tutorial PUBLIC "${PROJECT_BINARY_DIR}")
+
+    # specify the C++ standard
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+    if(USE_FOO)
+      add_subdirectory(foo)
+      list(APPEND EXTRA_LIBS foo)
+    endif()
+
+    target_link_libraries(Tutorial PUBLIC ${EXTRA_LIBS})
+
+    # add the binary tree to the search path for include files so that we will find TutorialConfig.h
+    target_include_directories(Tutorial PUBLIC
+                               "${PROJECT_BINARY_DIR}"
+                               )
+
+`foo/CMakeLists.txt`
+
+    add_library(foo foo.cxx)
+    target_include_directories(foo
+        INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+        )
