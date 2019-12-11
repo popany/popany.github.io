@@ -111,7 +111,7 @@ title: Learn CMake
     # mkdir build
     # cd build
     # cmake ../
-    # cmake build .
+    # cmake --build .
     # ./Tutorial
 
 ### Adding a Library (Step 2)
