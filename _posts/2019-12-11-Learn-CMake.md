@@ -271,3 +271,93 @@ And here:
     target_include_directories(foo
         INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
         )
+
+### Installing and Testing (Step 4)
+
+#### Install Rules
+
+The install rules for `foo`: install the **library** and **header file**.  
+The install rules for `Tutorial`: install the **executable** and **configured header**.
+
+`foo/CMakeLists.txt`
+
+    add_library(foo foo.cxx)
+    target_include_directories(foo
+        INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+    
+    install(TARGETS foo DESTINATION lib)
+    install(FILES foo.h DESTINATION include)
+
+`CMakeLists.txt`
+
+    cmake_minimum_required(VERSION 3.10)
+
+    # add the executable
+    add_executable(Tutorial tutorial.cxx)
+
+    # set the project name and version
+    project(Tutorial VERSION 1.0)
+
+    # put this before configure_file()
+    option(USE_FOO "Use foo" ON)
+
+    # configure a header file to pass the version number to the source code
+    configure_file(TutorialConfig.h.in TutorialConfig.h)
+
+    # add build directory to the list of paths to search for include files
+    target_include_directories(Tutorial PUBLIC "${PROJECT_BINARY_DIR}")
+
+    # specify the C++ standard
+    set(CMAKE_CXX_STANDARD 11)
+    set(CMAKE_CXX_STANDARD_REQUIRED True)
+
+    if(USE_FOO)
+      add_subdirectory(foo)
+      list(APPEND EXTRA_LIBS foo)
+    endif()
+
+    target_link_libraries(Tutorial PUBLIC ${EXTRA_LIBS})
+
+    # add the binary tree to the search path for include files so that we will find TutorialConfig.h
+    target_include_directories(Tutorial PUBLIC
+                               "${PROJECT_BINARY_DIR}"
+                               )
+
+    install(TARGETS Tutorial DESTINATION bin)
+    install(FILES "${PROJECT_BINARY_DIR}/TutorialConfig.h"
+            DESTINATION include
+           )
+
+Run cmake or cmake-gui to configure the project and then build it with your chosen build tool. Run the install step by typing cmake --install . (introduced in 3.15, older versions of CMake must use make install) from the command line, or build the INSTALL target from an IDE. This will install the appropriate header files, libraries, and executables.
+
+The CMake variable CMAKE_INSTALL_PREFIX is used to determine the root of where the files will be installed. If using cmake --install a custom installation directory can be given via --prefix argument. For multi-configuration tools, use the --config argument to specify the configuration.
+
+##### illustrate
+
+`CMAKE_INSTALL_PREFIX`
+
+> Install directory used by `install()`.
+>
+> If `make install` is invoked or `INSTALL` is built, this directory is prepended onto all install directories. This variable defaults to `/usr/local` on UNIX and `c:/Program Files/${PROJECT_NAME}` on Windows. See `CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT` for how a project might choose its own default.
+>
+> On UNIX one can use the `DESTDIR` mechanism in order to relocate the whole installation. See `DESTDIR` for more information.
+>
+> The installation prefix is also added to `CMAKE_SYSTEM_PREFIX_PATH` so that `find_package()`, `find_program()`, `find_library()`, `find_path()`, and `find_file()` will search the prefix for other software.
+
+see: [How to use CMAKE_INSTALL_PREFIX](https://stackoverflow.com/questions/6241922/how-to-use-cmake-install-prefix)
+
+##### build
+
+    # mkdir build
+    # cd build
+    # mkdir install
+    # cmake -DCMAKE_INSTALL_PREFIX=./install ..
+    # cmake --build .
+    # make install
+
+#### Testing Support
+
+At the end of the top-level CMakeLists.txt file we can enable testing and then add a number of basic tests to verify that the application is working correctly.
+
+### Adding System Introspection (Step 5)
