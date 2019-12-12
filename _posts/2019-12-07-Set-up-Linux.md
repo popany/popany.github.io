@@ -131,3 +131,5 @@ And then 2>&1 causing:
     stdin  ==> fd 0
     stdout ==> /dev/null
     stderr ==> stdout
+
+### [chroot](https://wiki.archlinux.org/index.php/Chroot)
