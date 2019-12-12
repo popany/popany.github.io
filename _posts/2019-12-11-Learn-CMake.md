@@ -369,3 +369,6 @@ At the end of the top-level CMakeLists.txt file we can enable testing and then a
 [How to copy DLL files into the same folder as the executable using CMake?](https://stackoverflow.com/questions/10671916/how-to-copy-dll-files-into-the-same-folder-as-the-executable-using-cmake)  
 
 [CMake RPATH handling](https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling)  
+
+[An Introduction to Modern CMake](https://cliutils.gitlab.io/modern-cmake/)  
+
