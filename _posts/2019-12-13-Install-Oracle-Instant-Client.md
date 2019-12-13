@@ -32,7 +32,7 @@ For example, on Oracle Linux, run:
 5. Update the runtime link path, for example:
 
         # sh -c "echo /opt/oracle/instantclient_19_3 > /etc/ld.so.conf.d/oracle-instantclient.conf"
-        # sudo ldconfig
+        # ldconfig
 
 6. If you intend to co-locate optional Oracle configuration files such as `tnsnames.ora`, `sqlnet.ora`, `ldap.ora`, or `oraaccess.xml` with Instant Client, put them in the `network/admin` subdirectory. This needs to be created for `12.2` and earlier, for example:
 
