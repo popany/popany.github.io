@@ -56,9 +56,22 @@ For example, on Oracle Linux, run:
 
 2. Download the **Instant Client ODBC package**. Unzip it in the same directory as your Basic or Basic Light package.
 
-3. Install the **unixODBC driver manager** if it is not already available.
+3. Install the **unixODBC driver manager** if it is not already available. [see](https://www.ibm.com/support/knowledgecenter/SSEPGG_10.5.0/com.ibm.db2.luw.apdv.cli.doc/doc/t0061216.html)
+
+        # apt install unixodbc
+        # apt install unixodbc-dev
 
 4. Execute `odbc_update_ini.sh` from the Instant Client directory.
+
+    Usage: `odbc_update_ini.sh <ODBCDM_Home> [<Install_Location> <Driver_Name> <DSN> <ODBCINI>]`
+
+    | Parameter   | Description |
+    |-------------|-------------|
+    | ODBCDM_Home | unixODBC driver manager home directory path |
+    | Install_Location | Oracle Instant Client directory path. The default path is the current directory |
+    | Driver_Name | Driver name to identify the Oracle ODBC driver residing in current Oracle Instant Client home. The default name will be like "Oracle 19c ODBC driver" |
+    | DSN | Sets ODBC DSN name. The default name will be "OracleODBC-19c" |
+    | ODBCINI | Directory path of the .odbc.ini file. The default path is the user's home directory, for example ~/.odbc.ini |
 
 5. Set any Oracle Globalization variables required for your locale. See the Oracle Database Globalization Support Guide for more information. For example on Linux you could set export `NLS_LANG=JAPANESE_JAPAN.JA16EUC` to work in the `JA16EUC` character in Japanese.
 
