@@ -73,6 +73,10 @@ For example, on Oracle Linux, run:
     | DSN | Sets ODBC DSN name. The default name will be "OracleODBC-19c" |
     | ODBCINI | Directory path of the .odbc.ini file. The default path is the user's home directory, for example ~/.odbc.ini |
 
+        # ./odbc_update_ini.sh /
+
+    see: [What is the correct value of ODBCDM_Home for unixodbc on ubuntu](https://stackoverflow.com/questions/45425671/what-is-the-correct-value-of-odbcdm-home-for-unixodbc-on-ubuntu)
+
 5. Set any Oracle Globalization variables required for your locale. See the Oracle Database Globalization Support Guide for more information. For example on Linux you could set export `NLS_LANG=JAPANESE_JAPAN.JA16EUC` to work in the `JA16EUC` character in Japanese.
 
 ### Uninstalling Oracle ODBC Instant Client On Linux and UNIX
