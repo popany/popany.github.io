@@ -7,5 +7,4 @@ title: Learn chroot
 
 ## [DeveloperWiki:Building in a clean chroot](https://wiki.archlinux.org/index.php/DeveloperWiki:Building_in_a_clean_chroot)
 
-## [How to use a chroot-jail for software development
-](http://gernotklingler.com/blog/use-chroot-jail-software-development/)
+## [How to use a chroot-jail for software development](http://gernotklingler.com/blog/use-chroot-jail-software-development/)
