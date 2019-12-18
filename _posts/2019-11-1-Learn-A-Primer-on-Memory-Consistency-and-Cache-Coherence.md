@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Study notes - A Primer on Memory Consistency and Cache Coherence
+title: Learn - A Primer on Memory Consistency and Cache Coherence
 ---
 
 ## 1. Introduction to Consistency and Coherence
