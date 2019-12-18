@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Study notes - C++ Concurrency in Action
+title: Learn - C++ Concurrency in Action
 ---
 
 ## 1.  x
