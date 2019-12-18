@@ -1,6 +1,6 @@
 ---
 layout: post
-title: ISO C++ FAQ - C++11
+title: Learn - ISO C++ FAQ - C++11
 ---
 
 ## [C++11 Overview](https://isocpp.org/wiki/faq/cpp11)
