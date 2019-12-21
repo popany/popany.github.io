@@ -88,3 +88,7 @@ The procedure to uninstall Instant Client ODBC on Linux/UNIX is:
 2. Remove the `DSN` entry of the Oracle ODBC driver from `odbc.ini`. The default name of the DSN entry is like `[OracleODBC-19c]`.
 
 3. Delete all files and directories in the Instant Client ODBC directory.
+
+## Resources
+
+[Oracle Instant Client Downloads](https://www.oracle.com/database/technologies/instant-client/downloads.html)
