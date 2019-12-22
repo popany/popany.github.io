@@ -387,4 +387,311 @@ A Docker build executes `ONBUILD` commands before any command in a child `Docker
 
 ## [Manage data in Docker](https://docs.docker.com/storage/)
 
+By default all files created inside a container are stored on a **writable container layer**. This means that:
+
+* The data **doesn’t persist** when that container no longer exists, and it can be **difficult to get the data out** of the container if another process needs it.
+
+* A container’s writable layer is tightly **coupled to the host machine** where the container is running. You can’t easily move the data somewhere else.
+
+* Writing into a container’s writable layer requires a storage driver to manage the filesystem. The storage driver provides a union filesystem, using the Linux kernel. This extra abstraction **reduces performance** as compared to using data volumes, which write directly to the host filesystem.
+
+### Choose the right type of mount
+
+* **Volumes** are stored in a part of the host filesystem which is **managed by Docker** (`/var/lib/docker/volumes/` on Linux). Non-Docker processes should not modify this part of the filesystem. **Volumes are the best way to persist data in Docker**.
+
+* **Bind mounts** may be stored anywhere on the host system. They may even be important system files or directories. Non-Docker processes on the Docker host or a Docker container can modify them at any time.
+
+* tmpfs mounts are stored in the host system’s memory only, and are never written to the host system’s filesystem.
+
+### More details about mount types
+
+* **Volumes**: Created and managed by Docker. You can create a volume **explicitly** using the `docker volume create` command, or Docker can create a volume **during container or service creation**.
+
+When you create a volume, it is stored within a directory on the Docker host. When you mount the volume into a container, this directory is what is mounted into the container. This is **similar to the way that bind mounts** work, except that volumes are **managed by Docker** and are **isolated** from the core functionality of the host machine.
+
+A given volume can be **mounted into multiple containers** simultaneously. When no running container is using a volume, the volume is still available to Docker and is **not removed automatically**. You can **remove unused volumes** using `docker volume prune`.
+
+When you mount a volume, it may be **named** or **anonymous**. Anonymous volumes are not given an explicit name when they are first mounted into a container, so Docker gives them a random name that is guaranteed to be **unique within a given Docker host**. Besides the name, named and anonymous volumes behave in the same ways.
+
+Volumes also support the use of **volume drivers**, which allow you to store your data on **remote hosts** or **cloud providers**, among other possibilities.
+
+* **Bind mounts**: Available since the early days of Docker. Bind mounts have limited functionality compared to volumes. When you use a bind mount, a file or directory on the host machine is mounted into a container. The file or directory is **referenced by its full path** on the host machine. The file or directory does **not need to exist on the Docker host already**. It is **created on demand** if it does not yet exist. Bind mounts are very **performant**, but they rely on the host machine’s filesystem having a **specific directory structure available**. If you are developing new Docker applications, consider using named volumes instead. You can’t use Docker CLI commands to directly manage bind mounts.
+
+One **side effect** of using bind mounts, for better or for worse, is that you **can change the host filesystem** via processes running in a container, including creating, modifying, or deleting important system files or directories. This is a powerful ability which can have **security implications**, including impacting non-Docker processes on the host system.
+
+* **tmpfs mounts**: A tmpfs mount is not persisted on disk, either on the Docker host or within a container. It can be used by a container during the lifetime of the container, to store non-persistent state or sensitive information. For instance, internally, swarm services use tmpfs mounts to mount secrets into a service’s containers.
+
+* **named pipes**: An npipe mount can be used for communication between the Docker host and a container. Common use case is to run a third-party tool inside of a container and connect to the Docker Engine API using a named pipe.
+
+Bind mounts and volumes can both be mounted into containers using the `-v` or `--volume` flag, but the syntax for each is slightly different. For `tmpfs` mounts, you can use the `--tmpfs` flag. However, in Docker 17.06 and higher, we **recommend using** the `--mount` flag for both containers and services, for bind mounts, volumes, or `tmpfs` mounts, as the syntax is more clear.
+
+### Good use cases for volumes
+
+Volumes are the preferred way to persist data in Docker containers and services. Some use cases for volumes include:
+
+* **Sharing data among multiple running containers**. If you don’t explicitly create it, a volume is created the first time it is mounted into a container. When that container stops or is removed, the volume still exists. **Multiple containers can mount the same volume simultaneously**, either **read-write** or **read-only**. Volumes are only removed when you explicitly remove them.
+
+* When the Docker host is not guaranteed to have a given directory or file structure. Volumes help you decouple the configuration of the Docker host from the container runtime.
+
+* When you want to store your container’s data on a remote host or a cloud provider, rather than locally.
+
+* When you need to **back up**, **restore**, or **migrate** data from one Docker host to another, volumes are a better choice. You can stop containers using the volume, then back up the volume’s directory (such as `/var/lib/docker/volumes/<volume-name>`).
+
+### Good use cases for bind mounts
+
+In general, you should **use volumes where possible**. Bind mounts are appropriate for the following types of use case:
+
+* **Sharing configuration files** from the host machine to containers. This is how Docker provides DNS resolution to containers by default, by mounting `/etc/resolv.conf` from the host machine into each container.
+
+* **Sharing source code** or **build artifacts** between a development environment on the Docker host and a container. For instance, you may mount a Maven `target/` directory into a container, and each time you build the Maven project on the Docker host, the container gets access to the rebuilt artifacts.
+
+If you use Docker for development this way, your **production `Dockerfile`** would copy the production-ready artifacts directly into the image, rather than relying on a bind mount.
+
+* When the file or directory structure of the Docker host is guaranteed to be consistent with the bind mounts the containers require.
+
+### Good use cases for tmpfs mounts
+
+**tmpfs** mounts are best used for cases when you do **not want the data to persist** either on the host machine or within the container. This may be for **security reasons** or to **protect the performance** of the container when your application needs to write a large volume of non-persistent state data.
+
+### Tips for using bind mounts or volumes
+
+If you use either bind mounts or volumes, keep the following in mind:
+
+* If you mount an empty volume into a directory in the container in which files or directories exist, these files or directories are propagated (copied) into the volume. Similarly, if you start a container and specify a volume which does not already exist, an empty volume is created for you. This is a good way to **pre-populate** data that another container needs.
+
+* If you mount a bind mount or non-empty volume into a directory in the container in which some files or directories exist, these files or directories are **obscured** by the mount, just as if you saved files into /mnt on a Linux host and then mounted a USB drive into /mnt. The contents of /mnt would be obscured by the contents of the USB drive until the USB drive were unmounted. **The obscured files are not removed or altered, but are not accessible while the bind mount or volume is mounted**.
+
 ## [Use volumes](https://docs.docker.com/storage/volumes/)
+
+**Volumes are the preferred mechanism for persisting data generated by and used by Docker containers**. While bind mounts are dependent on the directory structure of the host machine, volumes are **completely managed by Docker**. Volumes have several advantages over bind mounts:
+
+* Volumes are **easier to back up or migrate** than bind mounts.
+* You can manage volumes using Docker CLI commands or the Docker API.
+* Volumes work on both Linux and Windows containers.
+* Volumes can be more safely shared among multiple containers.
+* Volume drivers let you store volumes on **remote hosts** or **cloud providers**, to **encrypt the contents** of volumes, or to **add other functionality**.
+* New volumes can have their content pre-populated by a container.
+
+In addition, volumes are often a better choice than persisting data in a container’s writable layer, because a volume does not increase the size of the containers using it, and the volume’s contents exist outside the lifecycle of a given container.
+
+If your container generates non-persistent state data, consider using a tmpfs mount to avoid storing the data anywhere permanently, and to increase the container’s performance by avoiding writing into the container’s writable layer.
+
+Volumes use `rprivate` bind propagation, and bind propagation is not configurable for volumes.
+
+### Choose the -v or --mount flag
+
+### Create and manage volumes
+
+Create a volume:
+
+    $ docker volume create my-vol
+    List volumes:
+    $ docker volume ls
+
+    local               my-vol
+
+Inspect a volume:
+
+    $ docker volume inspect my-vol
+    [
+        {
+            "Driver": "local",
+            "Labels": {},
+            "Mountpoint": "/var/lib/docker/volumes/my-vol/_data",
+            "Name": "my-vol",
+            "Options": {},
+            "Scope": "local"
+        }
+    ]
+
+Remove a volume:
+
+    $ docker volume rm my-vol
+
+### Start a container with a volume
+
+If you start a container with a volume that does not yet exist, Docker creates the volume for you. The following example mounts the volume `myvol2` into `/app/` in the container.
+
+    $ docker run -d \
+      --name devtest \
+      --mount source=myvol2,target=/app \
+      nginx:latest
+
+Use `docker inspect devtest` to verify that the volume was created and mounted correctly.
+
+Stop the container and remove the volume. Note volume removal is a separate step.
+
+    $ docker container stop devtest
+
+    $ docker container rm devtest
+
+    $ docker volume rm myvol2
+
+### Share data among machines
+
+When building fault-tolerant applications, you might need to **configure multiple replicas of the same service to have access to the same files**.
+
+There are several ways to achieve this when developing your applications. One is to add logic to your application to store files on a cloud object storage system like Amazon S3. Another is to **create volumes with a driver that supports writing files to an external storage system** like NFS or Amazon S3.
+
+Volume drivers allow you to **abstract the underlying storage system from the application logic**. For example, if your services use a volume with an NFS driver, you can update the services to use a different driver, as an example to store data in the cloud, without changing the application logic.
+
+### Use a volume driver
+
+When you create a volume using `docker volume create`, or when you start a container which uses a not-yet-created volume, you can specify a volume driver. The following examples use the `vieux/sshfs` volume driver, first when creating a standalone volume, and then when starting a container which creates a new volume.
+
+#### Initial set-up
+
+This example assumes that you have two nodes, the first of which is a Docker host and can connect to the second using SSH.
+
+On the Docker host, install the `vieux/sshfs` plugin:
+
+    $ docker plugin install --grant-all-permissions vieux/sshfs
+
+#### Create a volume using a volume driver
+
+This example specifies a SSH password, but if the two hosts have shared keys configured, you can omit the password. Each volume driver may have zero or more configurable options, each of which is specified using an `-o` flag.
+
+    $ docker volume create --driver vieux/sshfs \
+      -o sshcmd=test@node2:/home/test \
+      -o password=testpassword \
+      sshvolume
+
+#### Start a container which creates a volume using a volume driver
+
+This example specifies a SSH password, but if the two hosts have shared keys configured, you can omit the password. Each volume driver may have zero or more configurable options. **If the volume driver requires you to pass options, you must use the `--mount` flag to mount the volume, rather than `-v`**.
+
+    $ docker run -d \
+      --name sshfs-container \
+      --volume-driver vieux/sshfs \
+      --mount src=sshvolume,target=/app,volume-opt=sshcmd=test@node2:/home/test,volume-opt=password=testpassword \
+      nginx:latest
+
+#### Create a service which creates an NFS volume
+
+This example shows how you can create an NFS volume when creating a service. This example uses `10.0.0.10` as the NFS server and `/var/docker-nfs` as the exported directory on the NFS server. Note that the volume driver specified is local.
+
+NFSv3
+
+    $ docker service create -d \
+      --name nfs-service \
+      --mount 'type=volume,source=nfsvolume,target=/app,volume-driver=local,volume-opt=type=nfs,volume-opt=device=:/var/docker-nfs,volume-opt=o=addr=10.0.0.10' \
+      nginx:latest
+
+NFSv4
+
+    docker service create -d \
+        --name nfs-service \
+        --mount 'type=volume,source=nfsvolume,target=/app,volume-driver=local,volume-opt=type=nfs,volume-opt=device=:/,"volume-opt=o=10.0.0.10,rw,nfsvers=4,async"' \
+        nginx:latest
+
+### Backup, restore, or migrate data volumes
+
+Volumes are useful for backups, restores, and migrations. Use the `--volumes-from` flag to create a new container that mounts that volume.
+
+#### Backup a container
+
+For example, create a new container named `dbstore`:
+
+    $ docker run -v /dbdata --name dbstore ubuntu /bin/bash
+
+Then in the next command, we:
+
+* Launch a new container and mount the volume from the dbstore container
+* Mount a local host directory as `/backup`
+* Pass a command that tars the contents of the dbdata volume to a `backup.tar` file inside our `/backup` directory.
+
+    $ docker run --rm --volumes-from dbstore -v $(pwd):/backup ubuntu tar cvf /backup/backup.tar /dbdata
+
+When the command completes and the container stops, we are left with a backup of our `dbdata` volume.
+
+#### Restore container from backup
+
+With the backup just created, you can restore it to the same container, or another that you made elsewhere.
+For example, create a new container named `dbstore2`:
+
+    $ docker run -v /dbdata --name dbstore2 ubuntu /bin/bash
+
+Then un-tar the backup file in the new container`s data volume:
+
+    $ docker run --rm --volumes-from dbstore2 -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xvf /backup/backup.tar --strip 1"
+
+You can use the techniques above to automate backup, migration and restore testing using your preferred tools.
+
+### Remove volumes
+
+A Docker data volume persists after a container is deleted. There are two types of volumes to consider:
+
+* **Named volumes** have a specific source from outside the container, for example `awesome:/bar`.
+
+* **Anonymous volumes** have no specific source so when the container is deleted, instruct the Docker Engine daemon to remove them.
+
+#### Remove anonymous volumes
+
+To automatically remove anonymous volumes, use the `--rm` option. For example, this command creates an anonymous `/foo` volume. When the container is removed, the Docker Engine removes the `/foo` volume but not the awesome volume.
+
+    $ docker run --rm -v /foo -v awesome:/bar busybox top
+
+#### Remove all volumes
+
+To remove all unused volumes and free up space:
+
+    $ docker volume prune
+
+## [Use bind mounts](https://docs.docker.com/storage/bind-mounts/)
+
+Bind mounts have been around since the early days of Docker. Bind mounts have limited functionality compared to volumes. When you use a bind mount, a file or directory on the host machine is mounted into a container. The file or directory is referenced by its full or relative path on the host machine. By contrast, when you use a volume, a new directory is created within Docker’s storage directory on the host machine, and Docker manages that directory’s contents.
+
+The file or directory does **not need to exist** on the Docker host already. It is **created on demand** if it does not yet exist. Bind mounts are very performant, but they rely on the host machine’s filesystem having a specific directory structure available. If you are developing new Docker applications, consider using named volumes instead. You can’t use Docker CLI commands to directly manage bind mounts.
+
+### Start a container with a bind mount
+
+Consider a case where you have a directory `source` and that when you build the source code, the artifacts are saved into another directory, `source/target/`. You want the artifacts to be available to the container at `/app/`, and you want the container to get access to a new build each time you build the source on your development host. Use the following command to bind-mount the `target/` directory into your container at `/app/`. Run the command from within the `source` directory. The `$(pwd)` sub-command expands to the current working directory on Linux or macOS hosts.
+
+    $ docker run -d \
+      -it \
+      --name devtest \
+      --mount type=bind,source="$(pwd)"/target,target=/app \
+      nginx:latest
+
+Stop the container:
+
+    $ docker container stop devtest
+
+    $ docker container rm devtest
+
+#### Mount into a non-empty directory on the container
+
+If you bind-mount into a non-empty directory on the container, the directory’s existing contents are **obscured by the bind mount**. This can be beneficial, such as when you want to **test a new version of your application without building a new image**. However, it can also be surprising and this behavior differs from that of docker volumes.
+
+    $ docker run -d \
+      -it \
+      --name broken-container \
+      --mount type=bind,source=/tmp,target=/usr \
+      nginx:latest
+
+    docker: Error response from daemon: oci runtime error: container_linux.go:262:
+    starting container process caused "exec: \"nginx\": executable file not found in $PATH".
+
+The container is created but does not start. Remove it:
+
+    $ docker container rm broken-container
+
+### Use a read-only bind mount
+
+This example modifies the one above but mounts the directory as a **read-only** bind mount, by adding `ro` to the (empty by default) list of options, after the mount point within the container. Where multiple options are present, separate them by commas.
+
+    $ docker run -d \
+      -it \
+      --name devtest \
+      --mount type=bind,source="$(pwd)"/target,target=/app,readonly \
+      nginx:latest
+
+Stop the container:
+
+    $ docker container stop devtest
+
+    $ docker container rm devtest
+
+### Configure bind propagation
+
+Bind propagation defaults to `rprivate` for both bind mounts and volumes. It is only configurable for bind mounts, and only on Linux host machines. Bind propagation is an advanced topic and many users never need to configure it.
