@@ -29,6 +29,12 @@ title: Learn - Docker as Build Environment
 
 [Docker C++ development and CI](https://stackoverflow.com/questions/42748040/docker-c-development-and-ci)
 
+## See
+
+[Should You Try to Set Environment Variables Based on a Command Output While Building a Docker Image?](https://vsupalov.com/set-dynamic-environment-variable-during-docker-image-build/)
+
+[6 Docker Basics You Should Completely Grasp When Getting Started](https://vsupalov.com/6-docker-basics/)
+
 ## [Best practices for writing Dockerfiles](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
 
 Docker builds images automatically by reading the instructions from a Dockerfile -- a text file that contains all commands, in order, needed to build a given image. 
