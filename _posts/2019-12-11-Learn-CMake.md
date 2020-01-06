@@ -1265,3 +1265,9 @@ This will allow you to quickly and simply add tests. Feel free to adjust to suit
 [CMake RPATH handling](https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling)  
 
 [https://cmake.org/examples/](https://cmake.org/examples/)
+
+[awesome-cmake](https://github.com/onqtam/awesome-cmake)
+
+[cmake-examples](https://github.com/ttroy50/cmake-examples)
+
+[learning-cmake](https://github.com/Akagi201/learning-cmake)
