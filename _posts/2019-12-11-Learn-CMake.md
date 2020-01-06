@@ -1279,3 +1279,5 @@ This will allow you to quickly and simply add tests. Feel free to adjust to suit
 [Use find_package and Find.cmake modules](https://riptutorial.com/cmake/example/22950/use-find-package-and-find-package--cmake-modules)
 
 [What use is find_package() if you need to specify CMAKE_MODULE_PATH anyway?](https://stackoverflow.com/questions/20746936/what-use-is-find-package-if-you-need-to-specify-cmake-module-path-anyway)
+
+[cmake-examples/01-basic/H-third-party-library](https://github.com/ttroy50/cmake-examples/tree/master/01-basic/H-third-party-library)
