@@ -17,8 +17,6 @@ title: Unit testing with GoogleTest and CMake
 
 [CMake + GoogleTest](https://stackoverflow.com/questions/9689183/cmake-googletest)
 
-[Building GoogleTest and GoogleMock directly in a CMake project](https://crascit.com/2015/07/25/cmake-gtest/)
-
 [How to link gtest with CMake?](https://stackoverflow.com/questions/44733206/how-to-link-gtest-with-cmake)
 
 [C++ project setup with CMake & unit tests (google test)](https://raymii.org/s/tutorials/Cpp_project_setup_with_cmake_and_unit_tests.html)
